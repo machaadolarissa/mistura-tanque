@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Histórico | Mistura no Tanque</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <a class="brand-mark" href="/">
+          Mistura no Tanque
+          <span>Consultas recentes</span>
+        </a>
+        <nav aria-label="Menu">
+          <a href="/">Verificar</a>
+          <a href="/agua">pH da água</a>
+          <a class="ativa" href="/historico">Histórico</a>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <h1>Histórico</h1>
+        <p>Últimas verificações de mistura feitas nesta instalação.</p>
+      </section>
+
+      <section class="painel">
+        <h2>Consultas</h2>
+        <ul id="lista" class="lista-hist"></ul>
+      </section>
+    </div>
+
+    <script>
+      async function carregar() {
+        const r = await fetch("/api/historico");
+        const { consultas } = await r.json();
+        const lista = document.getElementById("lista");
+
+        if (!consultas.length) {
+          lista.innerHTML =
+            "<li class='meta'>Nenhuma consulta ainda. Faça uma em Verificar.</li>";
+          return;
+        }
+
+        lista.innerHTML = consultas
+          .map(
+            (c) => `
+          <li>
+            <span class="badge ${c.nivel}">${c.nivel}</span>
+            <strong>${c.produtos.join(" + ")}</strong>
+            <div class="meta">
+              ${new Date(c.criadoEm).toLocaleString("pt-BR")}
+              ${
+                c.phUsado !== null && c.phUsado !== undefined
+                  ? " · pH " + Number(c.phUsado).toFixed(2)
+                  : ""
+              }
+            </div>
+          </li>`
+          )
+          .join("");
+      }
+
+      carregar();
+    </script>
+  </body>
+</html>

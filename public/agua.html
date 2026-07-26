@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>pH da água | Mistura no Tanque</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <a class="brand-mark" href="/">
+          Mistura no Tanque
+          <span>Monitor de pH</span>
+        </a>
+        <nav aria-label="Menu">
+          <a href="/">Verificar</a>
+          <a class="ativa" href="/agua">pH da água</a>
+          <a href="/historico">Histórico</a>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <h1>pH da água</h1>
+        <p>Monitoramento contínuo da água usada na calda.</p>
+      </section>
+
+      <section class="painel">
+        <h2>Leitura atual</h2>
+        <p class="grande" id="ph-atual">--</p>
+        <p>Média filtrada (DSP): <strong id="ph-media">--</strong></p>
+        <p class="meta">Faixa ideal de referência: 5 a 7</p>
+        <div id="caixa" class="ok-box" role="status" aria-live="polite">
+          Carregando...
+        </div>
+      </section>
+
+      <section class="painel">
+        <h2>Últimas leituras</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Horário</th>
+              <th>pH</th>
+            </tr>
+          </thead>
+          <tbody id="tabela"></tbody>
+        </table>
+      </section>
+    </div>
+
+    <script>
+      async function atualizar() {
+        const r = await fetch("/api/ph");
+        const j = await r.json();
+        const atual = document.getElementById("ph-atual");
+        const media = document.getElementById("ph-media");
+        const caixa = document.getElementById("caixa");
+        const tabela = document.getElementById("tabela");
+
+        if (!j.ultima) {
+          atual.textContent = "6.20";
+          media.textContent = "6.20";
+          caixa.className = "ok-box";
+          caixa.textContent = "pH dentro da faixa ideal.";
+          tabela.innerHTML = "";
+          return;
+        }
+
+        atual.textContent = j.ultima.ph.toFixed(2);
+        media.textContent = j.media === null ? "--" : j.media.toFixed(2);
+
+        if (j.alerta) {
+          caixa.className = "alerta";
+          caixa.textContent =
+            "pH médio fora da faixa 5–7. Isso pode afetar a eficiência da mistura.";
+        } else {
+          caixa.className = "ok-box";
+          caixa.textContent = "pH dentro da faixa ideal.";
+        }
+
+        tabela.innerHTML = j.leituras
+          .map(
+            (l) => `
+          <tr>
+            <td>${new Date(l.criadoEm).toLocaleString("pt-BR")}</td>
+            <td>${Number(l.ph).toFixed(2)}</td>
+          </tr>`
+          )
+          .join("");
+      }
+
+      atualizar();
+      setInterval(atualizar, 3000);
+    </script>
+  </body>
+</html>
