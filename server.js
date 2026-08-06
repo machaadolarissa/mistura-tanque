@@ -94,7 +94,7 @@ app.post("/api/ph", async (req, res) => {
 
 app.get("/api/ph", async (_req, res) => {
   try {
-    const leituras = await banco.listarPh(20);
+    const leituras = await banco.listarPh(50);
     const media = mediaMovel(leituras.map((l) => l.ph));
     res.json({
       ultima: leituras[0] || null,
